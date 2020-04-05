@@ -1,0 +1,15 @@
+{
+  "name": "docs-builder",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "author": "Josemar Luedke <josemarluedke@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "compile": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^13.11.0",
+    "typescript": "^3.8.3"
+  }
+}
