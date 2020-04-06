@@ -7,14 +7,14 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "allowJs": true,
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "noEmit": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitThis": true,
     "strict": true,
     "strictNullChecks": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
     "strictPropertyInitialization": true,
     "esModuleInterop": true,
     "outDir": "./dist",
@@ -23,6 +23,6 @@
     },
     "typeRoots": ["../../node_modules/@types", "types"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "types/**/*"],
   "exclude": ["dist/**/*"]
 }
