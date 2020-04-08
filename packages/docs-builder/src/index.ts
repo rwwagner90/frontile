@@ -34,13 +34,15 @@ import YAML from 'yaml';
 import { Node } from 'unist';
 
 interface Content {
-  file: string;
+  filepath: string;
   ast: Node;
   rendered: string;
   metadata: unknown;
+  demos?: Content[];
 }
 
 const projectRoot = '../../../';
+const root = path.resolve(__dirname, projectRoot);
 
 const stack = unified()
   .use(parse)
@@ -51,7 +53,7 @@ const stack = unified()
 
 const contents: Content[] = [];
 
-function visitor(file: string, ast: Node): void {
+function visitor(filepath: string, ast: Node): void {
   let metadata = {};
 
   visit(ast, 'yaml', (node) => {
@@ -59,17 +61,34 @@ function visitor(file: string, ast: Node): void {
   });
 
   contents.push({
-    file,
+    filepath,
     ast,
     metadata,
     rendered: stack.stringify(ast)
   });
 }
 
+function findParentFromDemo(filepath: string): number {
+  const folder = path.basename(path.dirname(filepath));
+
+  let parentName = folder.replace('-demo', '');
+  if (parentName === 'demo') {
+    parentName = path.basename(path.dirname(path.dirname(filepath)));
+  }
+
+  return contents.findIndex((item: Content, _: number): boolean => {
+    return (
+      path.basename(item.filepath) === `${parentName}.md` ||
+      (path.basename(item.filepath) === `index.md` &&
+        path.basename(path.dirname(item.filepath)) === parentName)
+    );
+  });
+}
+
 glob(
   '{/**/docs/**/*.md,/**/addon/**/*.md}',
   {
-    root: path.resolve(__dirname, projectRoot),
+    root,
     ignore: [
       '/**/node_modules/**',
       '/**/.git/**',
@@ -80,9 +99,29 @@ glob(
   },
   function (er, files) {
     files.forEach((file) => {
+      const relativePath = file.replace(path.join(root, '/'), '');
+
       const ast = stack.parse(fs.readFileSync(file));
-      visitor(file, ast);
+      visitor(relativePath, ast);
     });
+
+    contents.forEach((item: Content, index: number): void => {
+      const folder = path.basename(path.dirname(item.filepath));
+      if (folder.match(/demo$/)) {
+        const parent = contents[findParentFromDemo(item.filepath)];
+
+        if (parent) {
+          if (!parent.demos) {
+            parent.demos = [item];
+          } else {
+            parent.demos.push(item);
+          }
+
+          contents.splice(index, 1);
+        }
+      }
+    });
+
     console.log(contents);
   }
 );
