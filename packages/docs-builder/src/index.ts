@@ -19,6 +19,23 @@
 //        demo/
 //          - demo1.md
 //          - demo2.md
+//
+//
+//// intro
+// install
+// compoennts
+//   button
+//   button Group
+// modifers
+//   on
+//   bla
+// package
+//   intro
+//   bla
+//   components
+//     bla
+//     blaf
+//
 
 import glob from 'glob';
 import fs from 'fs';
@@ -32,14 +49,8 @@ import stringify from 'remark-stringify';
 import visit from 'unist-util-visit';
 import YAML from 'yaml';
 import { Node } from 'unist';
-
-interface Content {
-  filepath: string;
-  ast: Node;
-  rendered: string;
-  metadata: unknown;
-  demos?: Content[];
-}
+import { Content } from './types';
+import StructuredContentFn from './structed-content';
 
 const projectRoot = '../../../';
 const root = path.resolve(__dirname, projectRoot);
@@ -85,43 +96,39 @@ function findParentFromDemo(filepath: string): number {
   });
 }
 
-glob(
-  '{/**/docs/**/*.md,/**/addon/**/*.md}',
-  {
-    root,
-    ignore: [
-      '/**/node_modules/**',
-      '/**/.git/**',
-      '/**/tmp/**',
-      '/**/dist/**',
-      '/packages/docs/**' // TODO: Make this configurable
-    ]
-  },
-  function (er, files) {
-    files.forEach((file) => {
-      const relativePath = file.replace(path.join(root, '/'), '');
+const files = glob.sync('{/**/docs/**/*.md,/**/addon/**/*.md}', {
+  root,
+  ignore: [
+    '/**/node_modules/**',
+    '/**/.git/**',
+    '/**/tmp/**',
+    '/**/dist/**',
+    '/packages/docs/**' // TODO: Make this configurable
+  ]
+});
 
-      const ast = stack.parse(fs.readFileSync(file));
-      visitor(relativePath, ast);
-    });
+files.forEach((file) => {
+  const relativePath = file.replace(path.join(root, '/'), '');
 
-    contents.forEach((item: Content, index: number): void => {
-      const folder = path.basename(path.dirname(item.filepath));
-      if (folder.match(/demo$/)) {
-        const parent = contents[findParentFromDemo(item.filepath)];
+  const ast = stack.parse(fs.readFileSync(file));
+  visitor(relativePath, ast);
+});
 
-        if (parent) {
-          if (!parent.demos) {
-            parent.demos = [item];
-          } else {
-            parent.demos.push(item);
-          }
+contents.forEach((item: Content, index: number): void => {
+  const folder = path.basename(path.dirname(item.filepath));
+  if (folder.match(/demo$/)) {
+    const parent = contents[findParentFromDemo(item.filepath)];
 
-          contents.splice(index, 1);
-        }
+    if (parent) {
+      if (!parent.demos) {
+        parent.demos = [item];
+      } else {
+        parent.demos.push(item);
       }
-    });
 
-    console.log(contents);
+      contents.splice(index, 1);
+    }
   }
-);
+});
+
+StructuredContentFn(contents);
