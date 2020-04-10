@@ -9,6 +9,7 @@ export interface Content {
     order?: number;
     package?: string;
     category?: string;
+    routePath?: string;
   };
   demos?: Content[];
 }

@@ -7,8 +7,7 @@
 //
 // frontile
 //  docs
-//    - install.md
-//    - whatever.md
+//    - install.md - whatever.md
 //  packages/
 //    forms/
 //      docs/
@@ -51,6 +50,8 @@ import YAML from 'yaml';
 import { Node } from 'unist';
 import { Content } from './types';
 import StructuredContentFn from './structed-content';
+import routeMap from './route-map';
+const slug = require('github-slugger').slug;
 
 const projectRoot = '../../../';
 const root = path.resolve(__dirname, projectRoot);
@@ -64,6 +65,24 @@ const stack = unified()
 
 const contents: Content[] = [];
 
+function generateRoutePath(meta: Content['metadata']): string {
+  const parts: string[] = [];
+
+  if (meta.package) {
+    parts.push(slug(meta.package));
+  }
+
+  if (meta.category) {
+    parts.push(slug(meta.category));
+  }
+
+  if (meta.title) {
+    // TODO: DOn't use title, use original file name
+    parts.push(slug(meta.title));
+  }
+  return parts.join('/');
+}
+
 function visitor(filepath: string, ast: Node): void {
   let metadata = {};
 
@@ -74,7 +93,7 @@ function visitor(filepath: string, ast: Node): void {
   contents.push({
     filepath,
     ast,
-    metadata,
+    metadata: { ...metadata, routePath: generateRoutePath(metadata) },
     rendered: stack.stringify(ast)
   });
 }
@@ -116,6 +135,7 @@ files.forEach((file) => {
 
 contents.forEach((item: Content, index: number): void => {
   const folder = path.basename(path.dirname(item.filepath));
+
   if (folder.match(/demo$/)) {
     const parent = contents[findParentFromDemo(item.filepath)];
 
@@ -131,4 +151,6 @@ contents.forEach((item: Content, index: number): void => {
   }
 });
 
-StructuredContentFn(contents);
+const bla = StructuredContentFn(contents);
+
+console.log(routeMap(contents));
