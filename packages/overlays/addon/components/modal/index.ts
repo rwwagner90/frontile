@@ -32,9 +32,5 @@ export default class Modal extends Component<ModalArgs> {
     return this.args.allowClosing === false;
   }
 
-  @action handleClose(): void {
-    if (typeof this.args.onClose === 'function') {
-      this.args.onClose();
-    }
-  }
+
 }

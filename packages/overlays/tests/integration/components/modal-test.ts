@@ -21,6 +21,7 @@ module('Integration | Component | modal', function (hooks) {
       data-test-id="modal"
       as |m|
     >
+      <m.CloseButton/>
       <m.Header>My Header</m.Header>
       <m.Body>My Content</m.Body>
       <m.Footer>My Footer</m.Footer>
